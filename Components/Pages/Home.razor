@@ -120,6 +120,12 @@
 
                     <div class="mct-metrics-row">
                         <div class="mct-metric-chip">
+                            <strong>Cataloguer Aksharas:</strong>@res.CatAksharaCount
+                        </div>
+                        <div class="mct-metric-chip">
+                            <strong>Transcriptor Aksharas:</strong>@res.TranscAksharaCount
+                        </div>
+                        <div class="mct-metric-chip">
                             <strong>Match Percentage:</strong>@res.MatchPercentage%
                         </div>
                         <div class="mct-metric-chip">
@@ -204,39 +210,39 @@
     // here exactly as before, with no logic changes.
 
     private void HandleCompare()
-{
-    var engine = new TextComparisonEngine();
+    {
+        var engine = new TextComparisonEngine();
 
-    results.Clear();
+        results.Clear();
 
-    results.Add(
-        engine.Compare(
-            "Cat Begin Text ↔ Transc Begin Text",
-            catBegin,
-            transcBegin
-        )
-    );
+        results.Add(
+            engine.Compare(
+                "Cat Begin Text ↔ Transc Begin Text",
+                catBegin,
+                transcBegin
+            )
+        );
 
-    /*
-    results.Add(
-        engine.Compare(
-            "Cat End Text ↔ Transc End Text",
-            catEnd,
-            transcEnd
-        )
-    );
-    */
+        /*
+        results.Add(
+            engine.Compare(
+                "Cat End Text ↔ Transc End Text",
+                catEnd,
+                transcEnd
+            )
+        );
+        */
 
-    /*
-    results.Add(
-        engine.Compare(
-            "Cat Colo Text ↔ Transc Colo Text",
-            catColo,
-            transcColo
-        )
-    );
-    */
+        /*
+        results.Add(
+            engine.Compare(
+                "Cat Colo Text ↔ Transc Colo Text",
+                catColo,
+                transcColo
+            )
+        );
+        */
 
-    hasCompared = true;
-}
+        hasCompared = true;
+    }
 }

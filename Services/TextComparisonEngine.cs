@@ -1,10 +1,21 @@
 using System;
+using System.Collections.Generic;
+
+// ==========================================
+// TEXT COMPARISON ENGINE
+// ==========================================
+// Extracted verbatim from Home.razor's @code block. No logic, algorithm,
+// tokenization rule, or calculation has been changed in any way.
+// NOTE: No namespace is declared so this remains globally accessible exactly
+// as it was when nested inside Home.razor (no @using needed in Home.razor).
+// If your project prefers a namespace, wrap this class in one and add a
+// matching @using directive at the top of Home.razor.
 
 public class TextComparisonEngine
 {
-    private static readonly bool[] BaseSet = new bool[0x10000];
+    private static readonly HashSet<int> BaseSet = new();
 
-    private static readonly bool[] CombiningSet = new bool[0x10000];
+    private static readonly HashSet<int> CombiningSet = new();
 
     private const int Virama = 0x094D;
 
@@ -13,24 +24,24 @@ public class TextComparisonEngine
     {
         for (int cp = 0x0904; cp < 0x093A; cp++)
         {
-            BaseSet[cp] = true;
+            BaseSet.Add(cp);
         }
 
         for (int cp = 0x0958; cp < 0x0960; cp++)
         {
-            BaseSet[cp] = true;
+            BaseSet.Add(cp);
         }
 
         for (int cp = 0x093A; cp < 0x094D; cp++)
         {
-            CombiningSet[cp] = true;
+            CombiningSet.Add(cp);
         }
 
-        CombiningSet[0x094D] = true;
+        CombiningSet.Add(0x094D);
 
         for (int cp = 0x0951; cp < 0x0958; cp++)
         {
-            CombiningSet[cp] = true;
+            CombiningSet.Add(cp);
         }
 
         int[] extraCombining =
@@ -46,13 +57,13 @@ public class TextComparisonEngine
 
         foreach (int cp in extraCombining)
         {
-            CombiningSet[cp] = true;
+            CombiningSet.Add(cp);
         }
     }
 
 
-    // Public helper method to expose Aksharification for UI inspector (returns StringCollection so .Count works in Razor)
-    public System.Collections.Specialized.StringCollection ExposeSplitAksharas(string text)
+    // Public helper method to expose Aksharification for UI inspector
+    public List<string> ExposeSplitAksharas(string text)
     {
         return SplitAksharas(text);
     }
@@ -62,9 +73,9 @@ public class TextComparisonEngine
     // AKSHARIFICATION METHOD
     // ==========================================
 
-    private System.Collections.Specialized.StringCollection SplitAksharas(string text)
+    private List<string> SplitAksharas(string text)
     {
-        var outList = new System.Collections.Specialized.StringCollection();
+        var outList = new List<string>();
 
         if (string.IsNullOrEmpty(text))
         {
@@ -81,7 +92,7 @@ public class TextComparisonEngine
         {
             int cp = cleanedText[i];
 
-            if (!BaseSet[cp] && !CombiningSet[cp])
+            if (!BaseSet.Contains(cp) && !CombiningSet.Contains(cp))
             {
                 outList.Add(
                     cleanedText[i].ToString()
@@ -92,7 +103,7 @@ public class TextComparisonEngine
                 continue;
             }
 
-            if (!BaseSet[cp])
+            if (!BaseSet.Contains(cp))
             {
                 outList.Add(
                     cleanedText[i].ToString()
@@ -109,7 +120,7 @@ public class TextComparisonEngine
 
             while (
                 i < n &&
-                CombiningSet[cleanedText[i]]
+                CombiningSet.Contains(cleanedText[i])
             )
             {
                 bool isVirama =
@@ -120,7 +131,7 @@ public class TextComparisonEngine
                 if (
                     isVirama &&
                     i < n &&
-                    BaseSet[cleanedText[i]]
+                    BaseSet.Contains(cleanedText[i])
                 )
                 {
                     i++;
@@ -148,18 +159,15 @@ public class TextComparisonEngine
         string catText,
         string transcText)
     {
-        var col1 = SplitAksharas(catText);
-        var col2 = SplitAksharas(transcText);
+        var aksharas1 =
+            SplitAksharas(catText);
 
-        string[] aksharas1 = new string[col1.Count];
-        col1.CopyTo(aksharas1, 0);
-
-        string[] aksharas2 = new string[col2.Count];
-        col2.CopyTo(aksharas2, 0);
+        var aksharas2 =
+            SplitAksharas(transcText);
 
         if (
-            aksharas1.Length == 0 &&
-            aksharas2.Length == 0
+            aksharas1.Count == 0 &&
+            aksharas2.Count == 0
         )
         {
             return new ComparisonResult
@@ -172,7 +180,11 @@ public class TextComparisonEngine
 
                 IsExactMatch = true,
 
-                StatusMessage = "Both texts are empty."
+                StatusMessage = "Both texts are empty.",
+
+                CatAksharaCount = 0,
+
+                TranscAksharaCount = 0
             };
         }
 
@@ -184,8 +196,8 @@ public class TextComparisonEngine
 
         int maxLength =
             Math.Max(
-                aksharas1.Length,
-                aksharas2.Length
+                aksharas1.Count,
+                aksharas2.Count
             );
 
         double matchPercentage =
@@ -222,10 +234,10 @@ public class TextComparisonEngine
                 ? "✅ Exact Match"
                 : "❌ Non-Matching / Different";
 
-        var diffResult =
+        var (catDiff, transcDiff) =
             GenerateDiff(
-                aksharas1,
-                aksharas2
+                NormalizeText(catText),
+                NormalizeText(transcText)
             );
 
         return new ComparisonResult
@@ -240,9 +252,13 @@ public class TextComparisonEngine
 
             StatusMessage = status,
 
-            CatDiff = diffResult.CatDiff,
+            CatAksharaCount = aksharas1.Count,
 
-            TranscDiff = diffResult.TranscDiff
+            TranscAksharaCount = aksharas2.Count,
+
+            CatDiff = catDiff,
+
+            TranscDiff = transcDiff
         };
     }
 
@@ -282,12 +298,12 @@ public class TextComparisonEngine
     // ==========================================
 
     private int ComputeAksharaLevenshtein(
-        string[] s,
-        string[] t)
+        List<string> s,
+        List<string> t)
     {
-        int n = s.Length;
+        int n = s.Count;
 
-        int m = t.Length;
+        int m = t.Count;
 
         int[,] d =
             new int[n + 1, m + 1];
@@ -346,96 +362,195 @@ public class TextComparisonEngine
 
 
     // ==========================================
-    // GENERATE DIFF (ARRAY-BASED, NO ANGLE BRACKETS)
+    // GENERATE DIFF
     // ==========================================
 
-   private (
-        (string Text, bool IsMatch)[] CatDiff,
-        (string Text, bool IsMatch)[] TranscDiff
+    private (
+        List<(string Text, bool IsMatch)> CatDiff,
+        List<(string Text, bool IsMatch)> TranscDiff
     ) GenerateDiff(
-        string[] s,
-        string[] t)
+        string s,
+        string t)
     {
         int n = s.Length;
-        int m = t.Length;
-        int[,] d = new int[n + 1, m + 1];
 
-        for (int i = 0; i <= n; d[i, 0] = i++) { }
-        for (int j = 0; j <= m; d[0, j] = j++) { }
+        int m = t.Length;
+
+        int[,] d =
+            new int[n + 1, m + 1];
+
+        for (
+            int i = 0;
+            i <= n;
+            d[i, 0] = i++
+        )
+        {
+        }
+
+        for (
+            int j = 0;
+            j <= m;
+            d[0, j] = j++
+        )
+        {
+        }
 
         for (int i = 1; i <= n; i++)
         {
             for (int j = 1; j <= m; j++)
             {
-                int cost = (t[j - 1] == s[i - 1]) ? 0 : 1;
-                d[i, j] = Math.Min(
-                    Math.Min(d[i - 1, j] + 1, d[i, j - 1] + 1),
-                    d[i - 1, j - 1] + cost
-                );
+                int cost =
+                    (t[j - 1] == s[i - 1])
+                        ? 0
+                        : 1;
+
+                d[i, j] =
+                    Math.Min(
+                        Math.Min(
+                            d[i - 1, j] + 1,
+                            d[i, j - 1] + 1
+                        ),
+                        d[i - 1, j - 1] + cost
+                    );
             }
         }
 
-        var tempCat = new (string Text, bool IsMatch)[n + m + 1];
-        var tempTransc = new (string Text, bool IsMatch)[n + m + 1];
-        int count = 0;
+        var revCat =
+            new List<(string Text, bool IsMatch)>();
+
+        var revTransc =
+            new List<(string Text, bool IsMatch)>();
 
         int ci = n;
+
         int cj = m;
 
         while (ci > 0 || cj > 0)
         {
-            if (ci > 0 && cj > 0 && s[ci - 1] == t[cj - 1])
+            if (
+                ci > 0 &&
+                cj > 0 &&
+                s[ci - 1] == t[cj - 1]
+            )
             {
-                tempCat[count] = (s[ci - 1], true);
-                tempTransc[count] = (t[cj - 1], true);
+                revCat.Add(
+                    (
+                        s[ci - 1].ToString(),
+                        true
+                    )
+                );
+
+                revTransc.Add(
+                    (
+                        t[cj - 1].ToString(),
+                        true
+                    )
+                );
+
                 ci--;
+
                 cj--;
-                count++;
             }
             else
             {
-                bool canSub = ci > 0 && cj > 0;
-                bool canDel = ci > 0;
-                bool canIns = cj > 0;
+                bool canSub =
+                    ci > 0 &&
+                    cj > 0;
 
-                int subCost = canSub ? d[ci - 1, cj - 1] : int.MaxValue;
-                int delCost = canDel ? d[ci - 1, cj] : int.MaxValue;
-                int insCost = canIns ? d[ci, cj - 1] : int.MaxValue;
+                bool canDel =
+                    ci > 0;
 
-                if (canSub && subCost <= delCost && subCost <= insCost)
+                bool canIns =
+                    cj > 0;
+
+                int subCost =
+                    canSub
+                        ? d[ci - 1, cj - 1]
+                        : int.MaxValue;
+
+                int delCost =
+                    canDel
+                        ? d[ci - 1, cj]
+                        : int.MaxValue;
+
+                int insCost =
+                    canIns
+                        ? d[ci, cj - 1]
+                        : int.MaxValue;
+
+                if (
+                    canSub &&
+                    subCost <= delCost &&
+                    subCost <= insCost
+                )
                 {
-                    tempCat[count] = (s[ci - 1], false);
-                    tempTransc[count] = (t[cj - 1], false);
+                    revCat.Add(
+                        (
+                            s[ci - 1].ToString(),
+                            false
+                        )
+                    );
+
+                    revTransc.Add(
+                        (
+                            t[cj - 1].ToString(),
+                            false
+                        )
+                    );
+
                     ci--;
+
                     cj--;
-                    count++;
                 }
-                else if (canDel && delCost <= insCost)
+                else if (
+                    canDel &&
+                    delCost <= insCost
+                )
                 {
-                    tempCat[count] = (s[ci - 1], false);
-                    tempTransc[count] = ("", false); // Replaced "_" with empty string to avoid massive underscores
+                    revCat.Add(
+                        (
+                            s[ci - 1].ToString(),
+                            false
+                        )
+                    );
+
+                    revTransc.Add(
+                        (
+                            "_",
+                            false
+                        )
+                    );
+
                     ci--;
-                    count++;
                 }
                 else
                 {
-                    tempCat[count] = ("", false); // Replaced "_" with empty string to avoid massive underscores
-                    tempTransc[count] = (t[cj - 1], false);
+                    revCat.Add(
+                        (
+                            "_",
+                            false
+                        )
+                    );
+
+                    revTransc.Add(
+                        (
+                            t[cj - 1].ToString(),
+                            false
+                        )
+                    );
+
                     cj--;
-                    count++;
                 }
             }
         }
 
-        var finalCat = new (string Text, bool IsMatch)[count];
-        var finalTransc = new (string Text, bool IsMatch)[count];
+        revCat.Reverse();
 
-        for (int k = 0; k < count; k++)
-        {
-            finalCat[k] = tempCat[count - 1 - k];
-            finalTransc[k] = tempTransc[count - 1 - k];
-        }
+        revTransc.Reverse();
 
-        return (finalCat, finalTransc);
+        return (
+            revCat,
+            revTransc
+        );
     }
 }
