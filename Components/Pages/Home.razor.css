@@ -1,0 +1,386 @@
+/*
+  Extracted verbatim from the <style> block that was inside Home.razor.
+  No selectors, values, or rules were changed.
+
+  This file uses Blazor CSS isolation: because it is named
+  "Home.razor.css" and sits next to "Home.razor", the build automatically
+  scopes these rules to elements rendered by Home.razor (using generated
+  scope attributes) and bundles them into the app's shared stylesheet
+  (e.g. YourAssembly.styles.css). This produces the same visual result as
+  the original inline <style> block.
+
+  NOTE: Most Blazor project templates already reference the generated
+  bundle stylesheet in the host page (e.g. <link href="YourAssembly.styles.css" />
+  in wwwroot/index.html for WASM, or in the layout for Blazor Server / .NET 8).
+  If that link is missing, add it so isolated component styles are picked up.
+*/
+
+.mct-page {
+    /*
+      NOTE: these were originally under :root, but Blazor's CSS isolation
+      scope attribute never reaches the <html> element, so :root rules in a
+      *.razor.css file silently never match and every var(--mct-*) below was
+      undefined. Defining them here on .mct-page (the actual scoped root
+      element rendered by this component) fixes that; they still cascade
+      normally to every descendant.
+    */
+    --mct-bg: #f4f6f9;
+    --mct-surface: #ffffff;
+    --mct-border: #e2e6ec;
+    --mct-border-strong: #d3d9e3;
+    --mct-text: #1f2937;
+    --mct-text-muted: #6b7280;
+    --mct-primary: #2f5fae;
+    --mct-primary-dark: #24488a;
+    --mct-accent: #6b46a3;
+    --mct-success-bg: #eafaf1;
+    --mct-success-border: #b8ecc9;
+    --mct-success-text: #1f8b4d;
+    --mct-danger-bg: #fdecec;
+    --mct-danger-border: #f5c2c2;
+    --mct-danger-text: #b3261e;
+    --mct-diff-bg: #fdeaea;
+    --mct-diff-text: #b3261e;
+    --mct-radius: 10px;
+    --mct-shadow: 0 1px 3px rgba(16, 24, 40, 0.06), 0 1px 2px rgba(16, 24, 40, 0.04);
+
+    background-color: var(--mct-bg);
+    min-height: 100vh;
+    padding: 32px 16px 64px;
+    font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: var(--mct-text);
+}
+
+.mct-container {
+    max-width: 980px;
+    margin: 0 auto;
+}
+
+.mct-header {
+    text-align: center;
+    margin-bottom: 32px;
+}
+
+.mct-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--mct-text);
+    margin-bottom: 6px;
+    letter-spacing: -0.01em;
+}
+
+.mct-header p {
+    color: var(--mct-text-muted);
+    font-size: 15px;
+    max-width: 620px;
+    margin: 0 auto;
+    line-height: 1.5;
+}
+
+.mct-card {
+    background: var(--mct-surface);
+    border: 1px solid var(--mct-border);
+    border-radius: var(--mct-radius);
+    box-shadow: var(--mct-shadow);
+    padding: 22px 24px;
+    margin-bottom: 22px;
+}
+
+.mct-card-title {
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--mct-primary-dark);
+    margin: 0 0 16px 0;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--mct-border);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.mct-card-title .mct-step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--mct-primary);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 700;
+    flex-shrink: 0;
+}
+
+/* Inspector / tester card uses a distinct accent so it reads as a separate utility */
+.mct-inspector-card {
+    border-left: 3px solid var(--mct-accent);
+}
+
+.mct-inspector-card .mct-card-title {
+    color: var(--mct-accent);
+}
+
+.mct-inspector-desc {
+    font-size: 13.5px;
+    color: var(--mct-text-muted);
+    margin: 0 0 12px 0;
+}
+
+.mct-inspector-card textarea {
+    width: 100%;
+    min-height: 100px;
+    resize: vertical;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    border: 1px solid var(--mct-border-strong);
+    border-radius: 8px;
+    font-size: 14.5px;
+    line-height: 1.6;
+    font-family: inherit;
+    color: var(--mct-text);
+    background-color: #fbfcfe;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.mct-inspector-card textarea:focus {
+    outline: none;
+    border-color: var(--mct-accent);
+    box-shadow: 0 0 0 3px rgba(107, 70, 163, 0.12);
+    background-color: #ffffff;
+}
+
+.mct-inspector-results {
+    margin-top: 16px;
+    border-top: 1px dashed var(--mct-border);
+    padding-top: 14px;
+}
+
+.mct-inspector-count {
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.mct-inspector-count strong {
+    color: var(--mct-text-muted);
+    font-weight: 600;
+    margin-right: 6px;
+}
+
+.mct-akshara-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.mct-akshara-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: #f5f2fa;
+    border: 1px solid #e4d9f2;
+    border-radius: 6px;
+    padding: 5px 10px;
+    font-size: 14px;
+}
+
+.mct-akshara-chip .mct-akshara-idx {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--mct-accent);
+    background-color: #ffffff;
+    border-radius: 4px;
+    padding: 1px 5px;
+}
+
+.mct-input-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+}
+
+@media (max-width: 720px) {
+    .mct-input-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.mct-field label {
+    display: block;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--mct-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    margin-bottom: 8px;
+}
+
+.mct-field textarea {
+    width: 100%;
+    min-height: 130px;
+    resize: vertical;
+    box-sizing: border-box;
+    padding: 12px 14px;
+    border: 1px solid var(--mct-border-strong);
+    border-radius: 8px;
+    font-size: 14.5px;
+    line-height: 1.6;
+    font-family: inherit;
+    color: var(--mct-text);
+    background-color: #fbfcfe;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.mct-field textarea:focus {
+    outline: none;
+    border-color: var(--mct-primary);
+    box-shadow: 0 0 0 3px rgba(47, 95, 174, 0.12);
+    background-color: #ffffff;
+}
+
+.mct-actions {
+    display: flex;
+    justify-content: center;
+    margin: 28px 0 36px;
+}
+
+.mct-compare-btn {
+    background-color: var(--mct-primary);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 13px 36px;
+    font-size: 15.5px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 2px 6px rgba(47, 95, 174, 0.28);
+    transition: background-color 0.15s ease, transform 0.05s ease;
+    letter-spacing: 0.01em;
+}
+
+.mct-compare-btn:hover {
+    background-color: var(--mct-primary-dark);
+}
+
+.mct-compare-btn:active {
+    transform: translateY(1px);
+}
+
+.mct-results-heading {
+    font-size: 22px;
+    font-weight: 700;
+    margin: 0 0 18px 0;
+    color: var(--mct-text);
+}
+
+.mct-result-card {
+    background: var(--mct-surface);
+    border: 1px solid var(--mct-border);
+    border-radius: var(--mct-radius);
+    box-shadow: var(--mct-shadow);
+    padding: 22px 24px;
+    margin-bottom: 20px;
+}
+
+.mct-result-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.mct-result-header h4 {
+    margin: 0;
+    font-size: 16.5px;
+    font-weight: 700;
+    color: var(--mct-text);
+}
+
+.mct-status-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 14px;
+    border-radius: 999px;
+    font-size: 13px;
+    font-weight: 600;
+    white-space: nowrap;
+    border: 1px solid transparent;
+}
+
+.mct-status-badge.match {
+    background-color: var(--mct-success-bg);
+    border-color: var(--mct-success-border);
+    color: var(--mct-success-text);
+}
+
+.mct-status-badge.mismatch {
+    background-color: var(--mct-danger-bg);
+    border-color: var(--mct-danger-border);
+    color: var(--mct-danger-text);
+}
+
+.mct-metrics-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 18px;
+}
+
+.mct-metric-chip {
+    background-color: #f5f7fb;
+    border: 1px solid var(--mct-border);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-size: 13.5px;
+    color: var(--mct-text);
+}
+
+.mct-metric-chip strong {
+    color: var(--mct-text-muted);
+    font-weight: 600;
+    margin-right: 6px;
+}
+
+.mct-diff-block {
+    margin-bottom: 14px;
+}
+
+.mct-diff-block:last-child {
+    margin-bottom: 0;
+}
+
+.mct-diff-label {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: var(--mct-text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 8px;
+}
+
+.mct-diff-text {
+    background-color: #fbfcfe;
+    border: 1px solid var(--mct-border);
+    border-radius: 8px;
+    padding: 14px 16px;
+    font-size: 15px;
+    line-height: 1.9;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    color: var(--mct-text);
+}
+
+.mct-diff-text span {
+    color: var(--mct-text);
+}
+
+.mct-diff-text mark {
+    background-color: var(--mct-diff-bg);
+    color: var(--mct-diff-text);
+    font-weight: 600;
+    padding: 1px 2px;
+    border-radius: 3px;
+}

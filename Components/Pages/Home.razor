@@ -1,0 +1,242 @@
+﻿@page "/"
+@rendermode InteractiveServer
+@using System.Collections.Generic
+
+<div class="mct-page">
+    <div class="mct-container">
+
+        <div class="mct-header">
+            <h1>Manuscript Text Comparison Tool</h1>
+            <p>
+                Enter your text pairs below to compare using Akshara tokenization
+                &amp; Levenshtein Distance, with visual difference highlighting.
+            </p>
+        </div>
+
+        <!-- LIVE AKSHARA INSPECTOR (TESTER)
+        ================================================= -->
+        <div class="mct-card mct-inspector-card">
+            <div class="mct-card-title">
+                🔍 Live Aksharification Inspector (Test Tool)
+            </div>
+            <p class="mct-inspector-desc">
+                Test any Devanagari text here to see Akshara breakdown &amp; count.
+            </p>
+
+            <textarea @bind="testInput" rows="4"></textarea>
+
+            @if (!string.IsNullOrEmpty(testInput))
+            {
+                var previewAksharas = new TextComparisonEngine()
+                    .ExposeSplitAksharas(testInput);
+
+                <div class="mct-inspector-results">
+                    <div class="mct-inspector-count">
+                        <strong>Total Aksharas Count:</strong>@previewAksharas.Count
+                    </div>
+
+                    <div class="mct-akshara-grid">
+                        @for (int idx = 0; idx < previewAksharas.Count; idx++)
+                        {
+                            <span class="mct-akshara-chip">
+                                <span class="mct-akshara-idx">@(idx + 1)</span>
+                                <span>@previewAksharas[idx]</span>
+                            </span>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="mct-card">
+            <div class="mct-card-title">
+                <span class="mct-step-num">1</span>
+                Cat Begin Text ↔ Transc Begin Text
+            </div>
+            <div class="mct-input-grid">
+                <div class="mct-field">
+                    <label>Cat Begin Text</label>
+                    <textarea @bind="catBegin" rows="8"></textarea>
+                </div>
+                <div class="mct-field">
+                    <label>Transc Begin Text</label>
+                    <textarea @bind="transcBegin" rows="8"></textarea>
+                </div>
+            </div>
+        </div>
+
+        @* <div class="mct-card">
+            <div class="mct-card-title">
+                <span class="mct-step-num">2</span>
+                Cat End Text ↔ Transc End Text
+            </div>
+            <div class="mct-input-grid">
+                <div class="mct-field">
+                    <label>Cat End Text</label>
+                    <textarea @bind="catEnd" rows="8"></textarea>
+                </div>
+                <div class="mct-field">
+                    <label>Transc End Text</label>
+                    <textarea @bind="transcEnd" rows="8"></textarea>
+                </div>
+            </div>
+        </div> *@
+
+        @* <div class="mct-card">
+            <div class="mct-card-title">
+                <span class="mct-step-num">3</span>
+                Cat Colo Text ↔ Transc Colo Text
+            </div>
+            <div class="mct-input-grid">
+                <div class="mct-field">
+                    <label>Cat Colo Text</label>
+                    <textarea @bind="catColo" rows="8"></textarea>
+                </div>
+                <div class="mct-field">
+                    <label>Transc Colo Text</label>
+                    <textarea @bind="transcColo" rows="8"></textarea>
+                </div>
+            </div>
+        </div> *@
+
+        <div class="mct-actions">
+            <button class="mct-compare-btn" @onclick="HandleCompare">Compare Texts</button>
+        </div>
+
+        @if (hasCompared)
+        {
+            <h2 class="mct-results-heading">Comparison Results</h2>
+
+            @foreach (var res in results)
+            {
+                <div class="mct-result-card">
+
+                    <div class="mct-result-header">
+                        <h4>@res.PairName</h4>
+                        <span class="mct-status-badge @(res.IsExactMatch ? "match" : "mismatch")">
+                            @res.StatusMessage
+                        </span>
+                    </div>
+
+                    <div class="mct-metrics-row">
+                        <div class="mct-metric-chip">
+                            <strong>Match Percentage:</strong>@res.MatchPercentage%
+                        </div>
+                        <div class="mct-metric-chip">
+                            <strong>Akshara Distance (LD):</strong>@res.LevenshteinDistance units
+                        </div>
+                    </div>
+
+                    <div class="mct-diff-block">
+                        <div class="mct-diff-label">Cat Text (Highlighted Differences)</div>
+                        <div class="mct-diff-text">
+                            @foreach (var seg in res.CatDiff)
+                            {
+                                @if (seg.IsMatch)
+                                {
+                                    <span>@seg.Text</span>
+                                }
+                                else
+                                {
+                                    <mark>@seg.Text</mark>
+                                }
+                            }
+                        </div>
+                    </div>
+
+                    <div class="mct-diff-block">
+                        <div class="mct-diff-label">Transc Text (Highlighted Differences)</div>
+                        <div class="mct-diff-text">
+                            @foreach (var seg in res.TranscDiff)
+                            {
+                                @if (seg.IsMatch)
+                                {
+                                    <span>@seg.Text</span>
+                                }
+                                else
+                                {
+                                    <mark>@seg.Text</mark>
+                                }
+                            }
+                        </div>
+                    </div>
+
+                </div>
+            }
+        }
+
+    </div>
+</div>
+
+@code {
+
+    // ==========================================
+    // TEXT INPUT VARIABLES
+    // ==========================================
+
+    private string testInput = "";
+
+    private string catBegin = "";
+    private string transcBegin = "";
+
+    private string catEnd = "";
+    private string transcEnd = "";
+
+    private string catColo = "";
+    private string transcColo = "";
+
+
+    // ==========================================
+    // RESULT VARIABLES
+    // ==========================================
+
+    private bool hasCompared = false;
+
+    private List<ComparisonResult> results = new();
+
+
+    // ==========================================
+    // COMPARE BUTTON
+    // ==========================================
+    // ComparisonResult now lives in Models/ComparisonResult.cs and
+    // TextComparisonEngine now lives in Services/TextComparisonEngine.cs.
+    // Both are declared with no namespace, so they remain directly usable
+    // here exactly as before, with no logic changes.
+
+    private void HandleCompare()
+{
+    var engine = new TextComparisonEngine();
+
+    results.Clear();
+
+    results.Add(
+        engine.Compare(
+            "Cat Begin Text ↔ Transc Begin Text",
+            catBegin,
+            transcBegin
+        )
+    );
+
+    /*
+    results.Add(
+        engine.Compare(
+            "Cat End Text ↔ Transc End Text",
+            catEnd,
+            transcEnd
+        )
+    );
+    */
+
+    /*
+    results.Add(
+        engine.Compare(
+            "Cat Colo Text ↔ Transc Colo Text",
+            catColo,
+            transcColo
+        )
+    );
+    */
+
+    hasCompared = true;
+}
+}
